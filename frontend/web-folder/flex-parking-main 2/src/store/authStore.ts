@@ -31,11 +31,21 @@ export const useAuthStore = create<AuthState>((set) => ({
     checkAuth: () => {
         const token = localStorage.getItem("jwt_token");
         const userStr = localStorage.getItem("user");
-        if (token && userStr) {
-            set({ user: JSON.parse(userStr), token, loading: false });
-        } else {
-            set({ loading: false });
-        }
+
+        if (!token || !userStr || userStr === "undefined") {
+            set({ user: null, token: null, loading: false });
+            return;
+          }
+
+          try {
+            const user = JSON.parse(userStr);
+            set({ user, token, loading: false });
+          } catch (e) {
+            // corrupted localStorage (or old format) -> wipe and continue logged out
+            localStorage.removeItem("jwt_token");
+            localStorage.removeItem("user");
+            set({ user: null, token: null, loading: false });
+          }
     },
 
     // POST /api/v1/auth/login, body { email, password }
