@@ -11,18 +11,14 @@ export type User = {
 };
 
 type LoginResponse = {
-    token: string;
-    user: User;
+    id: number;
+    jwt: string;
 };
 
-export async function login(email: string, password: string): Promise<User> {
-    const result = await api.post<LoginResponse>("/login", {
-        email,
-        password,
-    });
-
-    api.setToken(result.token);
-    return result.user;
+export async function login(email: string, password: string) {
+    const result = await api.post<LoginResponse>("/auth/login", { email, password });
+    api.setToken(result.jwt);
+    return result;
 }
 
 export async function logout(): Promise<void> {

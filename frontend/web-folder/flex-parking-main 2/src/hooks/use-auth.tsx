@@ -4,9 +4,9 @@ import { toast } from "sonner";
 import { useAuthStore } from "@/store/authStore";
 
 interface User {
-  id: string;
-  email: string;
-  role: string;
+  id: number;
+  email?: string;
+  role?: string;
 }
 
 interface AuthContextType {

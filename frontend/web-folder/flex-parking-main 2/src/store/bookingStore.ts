@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import api, { ApiResponse } from '@/lib/api';
+import { create } from "zustand";
+import { api } from "@/lib/api";
 
 export interface Booking {
   id: string;
@@ -32,38 +32,38 @@ export const useBookingStore = create<BookingState>((set) => ({
 
   fetchRenterBookings: async (renterId: string) => {
     set({ loading: true });
-    const response = await api.get<ApiResponse<Booking[]>>(`/bookings/renter/${renterId}`);
-    set({ bookings: response.data.data, loading: false });
+    const bookings = await api.get<Booking[]>(`/bookings/renter/${renterId}`);
+    set({ bookings, loading: false });
   },
 
   fetchSpotBookings: async (spotId: string) => {
     set({ loading: true });
-    const response = await api.get<ApiResponse<Booking[]>>(`/bookings/spot/${spotId}`);
-    set({ bookings: response.data.data, loading: false });
+    const bookings = await api.get<Booking[]>(`/bookings/spot/${spotId}`);
+    set({ bookings, loading: false });
   },
 
   fetchAllBookings: async () => {
     set({ loading: true });
-    const response = await api.get<ApiResponse<Booking[]>>('/bookings/');
-    set({ bookings: response.data.data, loading: false });
+    const bookings = await api.get<Booking[]>("/bookings/");
+    set({ bookings, loading: false });
   },
 
   createBooking: async (booking) => {
-    const response = await api.post<ApiResponse<Booking>>('/bookings/create', booking);
-    set((state) => ({ bookings: [...state.bookings, response.data.data] }));
+    const created = await api.post<Booking>("/bookings/create", booking);
+    set((state) => ({ bookings: [...state.bookings, created] }));
   },
 
   updateBooking: async (id, booking) => {
-    const response = await api.put<ApiResponse<Booking>>(`/bookings/${id}/update`, booking);
+    const updated = await api.put<Booking>(`/bookings/${id}/update`, booking);
     set((state) => ({
-      bookings: state.bookings.map((b) => (b.id === id ? response.data.data : b)),
+      bookings: state.bookings.map((b) => (b.id === id ? updated : b)),
     }));
   },
 
   cancelBooking: async (id) => {
-    const response = await api.put<ApiResponse<Booking>>(`/bookings/booking/${id}/cancel`);
+    const updated = await api.put<Booking>(`/bookings/booking/${id}/cancel`);
     set((state) => ({
-      bookings: state.bookings.map((b) => (b.id === id ? response.data.data : b)),
+      bookings: state.bookings.map((b) => (b.id === id ? updated : b)),
     }));
   },
 }));

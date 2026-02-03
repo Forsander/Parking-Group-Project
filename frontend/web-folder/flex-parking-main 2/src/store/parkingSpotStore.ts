@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import api, { ApiResponse } from '@/lib/api';
+import { create } from "zustand";
+import { api } from "@/lib/api"; // use named export if you have it
 
 export interface ParkingSpot {
   id: string;
@@ -26,8 +26,8 @@ interface ParkingSpotState {
   fetchUserSpots: () => Promise<void>;
   fetchSpotsByCity: (city: string) => Promise<void>;
   fetchSpotsByCityAndTime: (city: string, startTime: string, endTime: string) => Promise<void>;
-  createSpot: (spot: Partial<Omit<ParkingSpot, 'id' | 'is_available'>>) => Promise<void>;
-  updateSpot: (id: string, spot: Partial<Omit<ParkingSpot, 'id' | 'is_available'>>) => Promise<void>;
+  createSpot: (spot: Partial<Omit<ParkingSpot, "id" | "is_available">>) => Promise<void>;
+  updateSpot: (id: string, spot: Partial<Omit<ParkingSpot, "id" | "is_available">>) => Promise<void>;
   deleteSpot: (id: string) => Promise<void>;
   activateSpot: (id: string) => Promise<void>;
   deactivateSpot: (id: string) => Promise<void>;
@@ -40,65 +40,58 @@ export const useParkingSpotStore = create<ParkingSpotState>((set) => ({
 
   fetchActiveSpots: async () => {
     set({ loading: true });
-    const response = await api.get<ApiResponse<ParkingSpot[]>>('/parking-spots/all/active-spots');
-    set({ spots: response.data.data, loading: false });
+    const spots = await api.get<ParkingSpot[]>("/parking-spots/all/active-spots");
+    set({ spots, loading: false });
   },
 
   fetchUserSpots: async () => {
     set({ loading: true });
-    const response = await api.get<ApiResponse<ParkingSpot[]>>('/parking-spots/all/user-spots');
-    set({ userSpots: response.data.data, loading: false });
+    const userSpots = await api.get<ParkingSpot[]>("/parking-spots/all/user-spots");
+    set({ userSpots, loading: false });
   },
 
   fetchSpotsByCity: async (city: string) => {
     set({ loading: true });
-    const response = await api.get<ApiResponse<ParkingSpot[]>>(`/parking-spots/all/active-spots/${city}`);
-    set({ spots: response.data.data, loading: false });
+    const spots = await api.get<ParkingSpot[]>(`/parking-spots/all/active-spots/${city}`);
+    set({ spots, loading: false });
   },
 
   fetchSpotsByCityAndTime: async (city: string, startTime: string, endTime: string) => {
     set({ loading: true });
-    const response = await api.get<ApiResponse<ParkingSpot[]>>(
+    const spots = await api.get<ParkingSpot[]>(
       `/parking-spots/all/active-spots/${city}/from/${startTime}/to/${endTime}`
     );
-    set({ spots: response.data.data, loading: false });
+    set({ spots, loading: false });
   },
 
   createSpot: async (spot) => {
-    const response = await api.post<ApiResponse<ParkingSpot>>('/parking-spots/create', spot);
-    set((state) => ({ userSpots: [...state.userSpots, response.data.data] }));
+    const created = await api.post<ParkingSpot>("/parking-spots/create", spot);
+    set((state) => ({ userSpots: [...state.userSpots, created] }));
   },
 
   updateSpot: async (id, spot) => {
-    const response = await api.put<ApiResponse<ParkingSpot>>(
-      `/parking-spots/parking-spot/${id}/update`,
-      spot
-    );
+    const updated = await api.put<ParkingSpot>(`/parking-spots/parking-spot/${id}/update`, spot);
     set((state) => ({
-      userSpots: state.userSpots.map((s) => (s.id === id ? response.data.data : s)),
+      userSpots: state.userSpots.map((s) => (s.id === id ? updated : s)),
     }));
   },
 
   deleteSpot: async (id) => {
-    await api.delete(`/parking-spots/parking-spot/${id}/delete`);
+    await api.del(`/parking-spots/parking-spot/${id}/delete`);
     set((state) => ({ userSpots: state.userSpots.filter((s) => s.id !== id) }));
   },
 
   activateSpot: async (id) => {
-    const response = await api.put<ApiResponse<ParkingSpot>>(
-      `/parking-spots/parking-spot/${id}/activate`
-    );
+    const updated = await api.put<ParkingSpot>(`/parking-spots/parking-spot/${id}/activate`);
     set((state) => ({
-      userSpots: state.userSpots.map((s) => (s.id === id ? response.data.data : s)),
+      userSpots: state.userSpots.map((s) => (s.id === id ? updated : s)),
     }));
   },
 
   deactivateSpot: async (id) => {
-    const response = await api.put<ApiResponse<ParkingSpot>>(
-      `/parking-spots/parking-spot/${id}/deactivate`
-    );
+    const updated = await api.put<ParkingSpot>(`/parking-spots/parking-spot/${id}/deactivate`);
     set((state) => ({
-      userSpots: state.userSpots.map((s) => (s.id === id ? response.data.data : s)),
+      userSpots: state.userSpots.map((s) => (s.id === id ? updated : s)),
     }));
   },
 }));

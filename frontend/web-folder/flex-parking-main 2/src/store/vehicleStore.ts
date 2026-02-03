@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import api, { ApiResponse } from '@/lib/api';
+import { create } from "zustand";
+import { api } from "@/lib/api";
 
 export interface Vehicle {
   id: string;
@@ -14,8 +14,8 @@ interface VehicleState {
   vehicles: Vehicle[];
   loading: boolean;
   fetchVehicles: () => Promise<void>;
-  createVehicle: (vehicle: Partial<Omit<Vehicle, 'id'>>) => Promise<void>;
-  updateVehicle: (id: string, vehicle: Partial<Omit<Vehicle, 'id'>>) => Promise<void>;
+  createVehicle: (vehicle: Partial<Omit<Vehicle, "id">>) => Promise<void>;
+  updateVehicle: (id: string, vehicle: Partial<Omit<Vehicle, "id">>) => Promise<void>;
   deleteVehicle: (id: string) => Promise<void>;
 }
 
@@ -25,24 +25,25 @@ export const useVehicleStore = create<VehicleState>((set) => ({
 
   fetchVehicles: async () => {
     set({ loading: true });
-    const response = await api.get<ApiResponse<Vehicle[]>>('/vehicles/all/user-vehicles');
-    set({ vehicles: response.data.data, loading: false });
+    const vehicles = await api.get<Vehicle[]>("/vehicles/all/user-vehicles");
+    set({ vehicles, loading: false });
   },
 
   createVehicle: async (vehicle) => {
-    const response = await api.post<ApiResponse<Vehicle>>('/vehicles/create', vehicle);
-    set((state) => ({ vehicles: [...state.vehicles, response.data.data] }));
+    const created = await api.post<Vehicle>("/vehicles/create", vehicle);
+    set((state) => ({ vehicles: [...state.vehicles, created] }));
   },
 
   updateVehicle: async (id, vehicle) => {
-    const response = await api.put<ApiResponse<Vehicle>>(`/vehicles/vehicle/${id}/update`, vehicle);
+    const updated = await api.put<Vehicle>(`/vehicles/vehicle/${id}/update`, vehicle);
     set((state) => ({
-      vehicles: state.vehicles.map((v) => (v.id === id ? response.data.data : v)),
+      vehicles: state.vehicles.map((v) => (v.id === id ? updated : v)),
     }));
   },
 
   deleteVehicle: async (id) => {
-    await api.delete(`/vehicles/vehicle/${id}/delete`);
+    await api.del(`/vehicles/vehicle/${id}/delete`);
     set((state) => ({ vehicles: state.vehicles.filter((v) => v.id !== id) }));
   },
 }));
+

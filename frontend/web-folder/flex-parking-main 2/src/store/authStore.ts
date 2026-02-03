@@ -1,81 +1,81 @@
 import { create } from "zustand";
 import { api } from "@/lib/api";
 
-interface User {
-    id: string;
-    email: string;
-    role: string;
-}
+type User = {
+  id: number;
+  email?: string;
+  role?: string;
+};
 
-interface LoginResult {
-    token: string;
-    user: User;
-}
+type LoginResponse = {
+  id: number;
+  jwt: string;
+};
 
 interface AuthState {
-    user: User | null;
-    token: string | null;
-    loading: boolean;
-    login: (email: string, password: string) => Promise<void>;
-    logout: () => Promise<void>;
-    signup: (email: string, password: string) => Promise<void>;
-    checkAuth: () => void;
+  user: User | null;
+  token: string | null;
+  loading: boolean;
+
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  signup: (email: string, password: string) => Promise<void>;
+  checkAuth: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
-    user: null,
-    token: null,
-    loading: true,
+  user: null,
+  token: null,
+  loading: true,
 
-    // Load from localStorage on app start
-    checkAuth: () => {
-        const token = localStorage.getItem("jwt_token");
-        const userStr = localStorage.getItem("user");
+  checkAuth: () => {
+    const token = localStorage.getItem("token");
 
-        if (!token || !userStr || userStr === "undefined") {
-            set({ user: null, token: null, loading: false });
-            return;
-          }
+    if (!token || token === "undefined") {
+      set({ user: null, token: null, loading: false });
+      return;
+    }
 
-          try {
-            const user = JSON.parse(userStr);
-            set({ user, token, loading: false });
-          } catch (e) {
-            // corrupted localStorage (or old format) -> wipe and continue logged out
-            localStorage.removeItem("jwt_token");
-            localStorage.removeItem("user");
-            set({ user: null, token: null, loading: false });
-          }
-    },
+    set({
+      token,
+      loading: false,
+      // You don't have user info from backend yet, so keep it minimal
+      user: null,
+    });
+  },
 
-    // POST /api/v1/auth/login, body { email, password }
-    // api.post<LoginResult> returns { token, user }
-    login: async (email: string, password: string) => {
-        const { token, user } = await api.post<LoginResult>("/auth/login", {
-            email,
-            password,
-        });
+login: async (email: string, password: string) => {
+    const result = await api.post<any>("/auth/login", { email, password });
 
-        localStorage.setItem("jwt_token", token);
-        localStorage.setItem("user", JSON.stringify(user));
-        set({ user, token });
-    },
+    // Support common backend field names just in case:
+    const token: string | undefined =
+    result?.jwt ?? result?.token ?? result?.accessToken ?? result?.jwtToken;
 
-    // POST /api/v1/users/create, body { email, password }
-    signup: async (email: string, password: string) => {
-        await api.post<User>("/users/create", { email, password });
-        // you could auto-login here if you want:
-        // const { token, user } = await api.post<LoginResult>("/auth/login", { email, password });
-        // localStorage.setItem("jwt_token", token);
-        // localStorage.setItem("user", JSON.stringify(user));
-        // set({ user, token });
-    },
+    // Validate token looks like a JWT (header.payload.signature)
+    if (!token || token === "undefined" || token === "null" || token.split(".").length !== 3) {
+    console.log("Login response data was:", result);
+    throw new Error("Login succeeded but no valid JWT was returned (check login response fields).");
+    }
 
-    // POST /api/v1/auth/logout, then clear storage
-    logout: async () => {
-        await api.post<void>("/auth/logout");
-        localStorage.removeItem("jwt_token");
-        localStorage.removeItem("user");
-        set({ user: null, token: null });
-    },
+    localStorage.setItem("token", token);
+
+    set({
+    token,
+    user: result?.id ? { id: Number(result.id) } : null,
+    loading: false,
+    });
+},
+
+  signup: async (email: string, password: string) => {
+    await api.post<User>("/users/create", { email, password });
+  },
+
+  logout: async () => {
+    try {
+      await api.post<void>("/auth/logout");
+    } finally {
+      localStorage.removeItem("token");
+      set({ user: null, token: null, loading: false });
+    }
+  },
 }));
