@@ -20,14 +20,19 @@ function clearToken() {
 }
 
 async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
-    const res = await fetch(`${API_BASE_URL}${path}`, {
-        ...options,
-        headers: {
-            "Content-Type": "application/json",
-            ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-            ...(options.headers || {}),
-        },
-    });
+  const token = localStorage.getItem("token");
+  const isJwt = token && token !== "undefined" && token !== "null" && token.split(".").length === 3;
+
+  const isAuthLogin = path === "/auth/login"; 
+
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(!isAuthLogin && isJwt ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options.headers || {}),
+    },
+  });
 
     if (!res.ok) {
         const text = await res.text().catch(() => "");
