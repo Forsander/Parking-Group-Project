@@ -2,17 +2,24 @@ import { useState, useEffect } from "react";
 import { useParkingSpotStore } from "@/store/parkingSpotStore";
 import { BottomNav } from "@/components/BottomNav";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin, DollarSign, Search, Calendar } from "lucide-react";
 import { BookingDialog } from "@/components/BookingDialog";
 import { format } from "date-fns";
+import { ParkingSpotsMap } from "@/components/ParkingSpotsMap";
 
 export default function Index() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSpot, setSelectedSpot] = useState<string | null>(null);
+  const [selectedSpotId, setSelectedSpotId] = useState<number | null>(null); // ✅ number
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
+
   const { spots, loading, fetchActiveSpots } = useParkingSpotStore();
 
   useEffect(() => {
@@ -27,12 +34,12 @@ export default function Index() {
       spot.country?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleBookSpot = (spotId: string) => {
-    setSelectedSpot(spotId);
+  const handleBookSpot = (spotId: number) => { // ✅ number
+    setSelectedSpotId(spotId);
     setBookingDialogOpen(true);
   };
 
-  const selectedSpotData = spots?.find((s) => s.id === selectedSpot);
+  const selectedSpotData = spots?.find((s) => s.id === selectedSpotId);
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -50,6 +57,12 @@ export default function Index() {
       </header>
 
       <main className="container mx-auto max-w-4xl p-4">
+        {!loading && filteredSpots && filteredSpots.length > 0 && (
+          <div className="mb-4">
+            <ParkingSpotsMap spots={filteredSpots} height="40vh" />
+          </div>
+        )}
+
         {loading ? (
           <div className="flex justify-center py-8">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
@@ -71,17 +84,21 @@ export default function Index() {
                     </div>
                   </div>
                 </CardHeader>
+
                 <CardContent className="space-y-3">
                   {spot.description && (
                     <p className="text-sm text-muted-foreground">{spot.description}</p>
                   )}
+
                   {(spot.available_from || spot.available_to) && (
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                       <Calendar className="h-3 w-3" />
-                      {spot.available_from && format(new Date(spot.available_from), "MMM d")} 
-                      {spot.available_to && ` - ${format(new Date(spot.available_to), "MMM d, yyyy")}`}
+                      {spot.available_from && format(new Date(spot.available_from), "MMM d")}
+                      {spot.available_to &&
+                        ` - ${format(new Date(spot.available_to), "MMM d, yyyy")}`}
                     </div>
                   )}
+
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
                       <div className="flex items-center gap-1 text-sm font-semibold text-primary">
@@ -90,6 +107,7 @@ export default function Index() {
                         {spot.price_per_day && ` • $${spot.price_per_day}/day`}
                       </div>
                     </div>
+
                     <Button size="sm" onClick={() => handleBookSpot(spot.id)}>
                       Book Now
                     </Button>
@@ -105,9 +123,9 @@ export default function Index() {
         )}
       </main>
 
-      {selectedSpotData && (
+      {selectedSpotData && selectedSpotId !== null && (
         <BookingDialog
-          spotId={selectedSpot!}
+          spotId={selectedSpotId} // ✅ number
           pricePerHour={Number(selectedSpotData.price_per_hour)}
           pricePerDay={Number(selectedSpotData.price_per_day || 0)}
           open={bookingDialogOpen}

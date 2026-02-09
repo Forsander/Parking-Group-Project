@@ -9,7 +9,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const bookingSchema = z.object({
   startTime: z.string().min(1, "Start time is required"),
@@ -19,7 +18,7 @@ const bookingSchema = z.object({
 type BookingFormValues = z.infer<typeof bookingSchema>;
 
 interface BookingDialogProps {
-  spotId: string;
+  spotId: number; 
   pricePerHour: number;
   pricePerDay: number;
   open: boolean;
@@ -31,17 +30,12 @@ export function BookingDialog({ spotId, pricePerHour, pricePerDay, open, onOpenC
   const { createBooking } = useBookingStore();
 
   useEffect(() => {
-    if (open) {
-      fetchVehicles();
-    }
+    if (open) fetchVehicles();
   }, [open, fetchVehicles]);
 
   const form = useForm<BookingFormValues>({
     resolver: zodResolver(bookingSchema),
-    defaultValues: {
-      startTime: "",
-      endTime: "",
-    },
+    defaultValues: { startTime: "", endTime: "" },
   });
 
   const calculatePrice = (start: string, end: string) => {
@@ -49,7 +43,7 @@ export function BookingDialog({ spotId, pricePerHour, pricePerDay, open, onOpenC
     const startDate = new Date(start);
     const endDate = new Date(end);
     const hours = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60));
-    
+
     if (hours >= 24) {
       const days = Math.ceil(hours / 24);
       return days * pricePerDay;
@@ -61,18 +55,20 @@ export function BookingDialog({ spotId, pricePerHour, pricePerDay, open, onOpenC
   const endTime = form.watch("endTime");
   const totalPrice = calculatePrice(startTime, endTime);
 
+  const withSeconds = (v: string) => (v.length === 16 ? `${v}:00` : v);
+
   const onSubmit = async (values: BookingFormValues) => {
     try {
       await createBooking({
         spotId,
-        startTime: values.startTime,
-        endTime: values.endTime,
+        startTime: withSeconds(values.startTime),
+        endTime: withSeconds(values.endTime),
       });
       toast.success("Booking created successfully!");
       form.reset();
       onOpenChange(false);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to create booking");
+      toast.error(error?.message || "Failed to create booking");
     }
   };
 
@@ -82,11 +78,10 @@ export function BookingDialog({ spotId, pricePerHour, pricePerDay, open, onOpenC
         <DialogHeader>
           <DialogTitle>Book Parking Spot</DialogTitle>
         </DialogHeader>
+
         {!vehicles || vehicles.length === 0 ? (
           <div className="py-4 text-center">
-            <p className="mb-4 text-muted-foreground">
-              You need to add a vehicle before booking.
-            </p>
+            <p className="mb-4 text-muted-foreground">You need to add a vehicle before booking.</p>
             <Button onClick={() => onOpenChange(false)}>Close</Button>
           </div>
         ) : (
@@ -118,11 +113,13 @@ export function BookingDialog({ spotId, pricePerHour, pricePerDay, open, onOpenC
                   </FormItem>
                 )}
               />
+
               {totalPrice > 0 && (
                 <div className="rounded-lg bg-muted p-3">
                   <p className="text-sm font-medium">Total Price: ${totalPrice.toFixed(2)}</p>
                 </div>
               )}
+
               <Button type="submit" className="w-full">
                 Confirm Booking
               </Button>

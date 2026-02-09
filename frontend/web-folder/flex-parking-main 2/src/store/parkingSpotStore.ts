@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { api } from "@/lib/api"; // use named export if you have it
 
 export interface ParkingSpot {
-  id: string;
+  id: number;
   title: string;
   description?: string;
   address: string;
@@ -27,10 +27,10 @@ interface ParkingSpotState {
   fetchSpotsByCity: (city: string) => Promise<void>;
   fetchSpotsByCityAndTime: (city: string, startTime: string, endTime: string) => Promise<void>;
   createSpot: (spot: Partial<Omit<ParkingSpot, "id" | "is_available">>) => Promise<void>;
-  updateSpot: (id: string, spot: Partial<Omit<ParkingSpot, "id" | "is_available">>) => Promise<void>;
-  deleteSpot: (id: string) => Promise<void>;
-  activateSpot: (id: string) => Promise<void>;
-  deactivateSpot: (id: string) => Promise<void>;
+  updateSpot: (id: number, spot: Partial<Omit<ParkingSpot, "id" | "is_available">>) => Promise<void>;
+  deleteSpot: (id: number) => Promise<void>;
+  activateSpot: (id: number) => Promise<void>;
+  deactivateSpot: (id: number) => Promise<void>;
 }
 
 export const useParkingSpotStore = create<ParkingSpotState>((set) => ({

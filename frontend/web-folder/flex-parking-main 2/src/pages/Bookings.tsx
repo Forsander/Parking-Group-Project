@@ -66,7 +66,7 @@ export default function Bookings() {
                   </div>
                   <div className="flex items-center gap-2 text-lg font-semibold text-primary">
                     <DollarSign className="h-5 w-5" />
-                    {booking.totalPrice}
+                    {booking.totalAmount}
                   </div>
                 </CardContent>
               </Card>
