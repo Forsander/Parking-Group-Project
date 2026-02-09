@@ -1,17 +1,21 @@
 package com.example.demo.service.user;
 
-import com.example.demo.responseDtos.UserResponseDto;
-import com.example.demo.exeptions.AlreadyExistsException;
-import com.example.demo.exeptions.ResourceNotFoundException;
-import com.example.demo.model.User;
-import com.example.demo.repository.UserRepository;
-import com.example.demo.requests.user.CreateUserRequest;
-import lombok.RequiredArgsConstructor;
+import java.util.Optional;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import com.example.demo.exeptions.AlreadyExistsException;
+import com.example.demo.exeptions.ResourceNotFoundException;
+import com.example.demo.model.Role;
+import com.example.demo.model.User;
+import com.example.demo.repository.RoleRepository;
+import com.example.demo.repository.UserRepository;
+import com.example.demo.requests.user.CreateUserRequest;
+import com.example.demo.responseDtos.UserResponseDto;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +24,7 @@ public class UserService implements IUserService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
+    private final RoleRepository roleRepository;
 
     @Override
     public UserResponseDto getUserById(Long userId) {
@@ -30,21 +35,25 @@ public class UserService implements IUserService {
         return convertUserToDto(user);
     }
 
-    @Override
-    public UserResponseDto createUser(CreateUserRequest request) {
-        User usr = Optional.of(request) //can be null
-                .filter(user -> !userRepository.existsByEmail(request.getEmail())) //Checks that user is not in the database
-                .map(req -> {
-                    //Create the user
-                    User user = new User();
-                    user.setEmail(request.getEmail());
-                    user.setPassword(passwordEncoder.encode(request.getPassword()));
-                    return userRepository.save(user); // save user
+@Override
+public UserResponseDto createUser(CreateUserRequest request) {
+    User usr = Optional.of(request)
+            .filter(req -> !userRepository.existsByEmail(req.getEmail()))
+            .map(req -> {
+                User user = new User();
+                user.setEmail(req.getEmail());
+                user.setPassword(passwordEncoder.encode(req.getPassword()));
 
-                }).orElseThrow(() -> new AlreadyExistsException(request.getEmail() + " already exists"));
+                Role roleUser = roleRepository.findByName("ROLE_USER")
+                        .orElseThrow(() -> new ResourceNotFoundException("Role ROLE_USER not found"));
 
-        return convertUserToDto(usr);
-    }
+                user.getRoles().add(roleUser);
+                return userRepository.save(user);
+            })
+            .orElseThrow(() -> new AlreadyExistsException(request.getEmail() + " already exists"));
+
+    return convertUserToDto(usr);
+}
 
     @Override
     public void deleteUserById(Long userId) {

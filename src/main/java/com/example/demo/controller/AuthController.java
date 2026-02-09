@@ -1,12 +1,5 @@
 package com.example.demo.controller;
 
-import com.example.demo.requests.auth.LoginRequest;
-import com.example.demo.response.ApiResponse;
-import com.example.demo.response.JwtResponse;
-import com.example.demo.security.jwt.JwtUtils;
-import com.example.demo.security.user.AppUserDetails;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -15,11 +8,24 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.example.demo.requests.auth.LoginRequest;
+import com.example.demo.response.ApiResponse;
+import com.example.demo.response.JwtResponse;
+import com.example.demo.response.MeResponse;
+import com.example.demo.security.jwt.JwtUtils;
+import com.example.demo.security.user.AppUserDetails;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
 
 @RequiredArgsConstructor
 @RestController
@@ -74,5 +80,22 @@ public class AuthController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())
                 .body(new ApiResponse("Logout successful", null));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse> me(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()
+                || !(authentication.getPrincipal() instanceof AppUserDetails userDetails)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponse("Not authenticated", null));
+        }
+
+        var roles = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+
+        MeResponse me = new MeResponse(userDetails.getId(), userDetails.getUsername(), roles);
+
+        return ResponseEntity.ok(new ApiResponse("OK", me));
     }
 }

@@ -12,7 +12,8 @@ import { AddVehicleDialog } from "@/components/AddVehicleDialog";
 export default function Profile() {
   const { user, signOut } = useAuth();
   const { vehicles, loading, fetchVehicles } = useVehicleStore();
-
+  const prettyRole = (role?: string) =>
+    role ? role.replace(/^ROLE_/, "").toLowerCase().replace(/^\w/, (c) => c.toUpperCase()) : "—";
   useEffect(() => {
     if (user) {
       fetchVehicles();
@@ -38,7 +39,7 @@ export default function Profile() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Role</p>
-                <p className="font-medium">{user?.role}</p>
+                <p className="font-medium">{prettyRole(user?.role)}</p>
               </div>
             </CardContent>
           </Card>
