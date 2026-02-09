@@ -1,0 +1,69 @@
+import { create } from "zustand";
+import { api } from "@/lib/api";
+
+export interface Booking {
+  id: string;
+  spotId: string;
+  startTime: string;
+  endTime: string;
+  totalPrice: number;
+  status: string;
+  parking_spot?: {
+    title: string;
+    address: string;
+    price_per_hour: number;
+  };
+}
+
+interface BookingState {
+  bookings: Booking[];
+  loading: boolean;
+  fetchRenterBookings: (renterId: string) => Promise<void>;
+  fetchSpotBookings: (spotId: string) => Promise<void>;
+  fetchAllBookings: () => Promise<void>;
+  createBooking: (booking: { spotId: string; startTime: string; endTime: string }) => Promise<void>;
+  updateBooking: (id: string, booking: { spotId: string; startTime: string; endTime: string }) => Promise<void>;
+  cancelBooking: (id: string) => Promise<void>;
+}
+
+export const useBookingStore = create<BookingState>((set) => ({
+  bookings: [],
+  loading: false,
+
+  fetchRenterBookings: async (renterId: string) => {
+    set({ loading: true });
+    const bookings = await api.get<Booking[]>(`/bookings/renter/${renterId}`);
+    set({ bookings, loading: false });
+  },
+
+  fetchSpotBookings: async (spotId: string) => {
+    set({ loading: true });
+    const bookings = await api.get<Booking[]>(`/bookings/spot/${spotId}`);
+    set({ bookings, loading: false });
+  },
+
+  fetchAllBookings: async () => {
+    set({ loading: true });
+    const bookings = await api.get<Booking[]>("/bookings/");
+    set({ bookings, loading: false });
+  },
+
+  createBooking: async (booking) => {
+    const created = await api.post<Booking>("/bookings/create", booking);
+    set((state) => ({ bookings: [...state.bookings, created] }));
+  },
+
+  updateBooking: async (id, booking) => {
+    const updated = await api.put<Booking>(`/bookings/${id}/update`, booking);
+    set((state) => ({
+      bookings: state.bookings.map((b) => (b.id === id ? updated : b)),
+    }));
+  },
+
+  cancelBooking: async (id) => {
+    const updated = await api.put<Booking>(`/bookings/booking/${id}/cancel`);
+    set((state) => ({
+      bookings: state.bookings.map((b) => (b.id === id ? updated : b)),
+    }));
+  },
+}));

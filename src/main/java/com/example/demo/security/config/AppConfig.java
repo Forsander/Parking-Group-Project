@@ -1,9 +1,7 @@
 package com.example.demo.security.config;
 
-import com.example.demo.security.jwt.AuthTokenFilter;
-import com.example.demo.security.jwt.JwtAuthEntryPoint;
-import com.example.demo.security.user.AppUserDetailsService;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,12 +18,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import java.util.List;
+import com.example.demo.security.jwt.AuthTokenFilter;
+import com.example.demo.security.jwt.JwtAuthEntryPoint;
+import com.example.demo.security.user.AppUserDetailsService;
+
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @EnableWebSecurity
 @Configuration
-@EnableMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity(prePostEnabled = false)
 public class AppConfig {
     private final AppUserDetailsService userDetailsService;
     private final JwtAuthEntryPoint authEntryPoint;
@@ -59,10 +61,14 @@ public class AppConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
-                .exceptionHandling(exeption -> exeption.authenticationEntryPoint(authEntryPoint))
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth.requestMatchers(SECURED_URLS.toArray(String[]::new)).authenticated()
-                        .anyRequest().permitAll());
+            .exceptionHandling(exeption -> exeption.authenticationEntryPoint(authEntryPoint))
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/v1/auth/**").permitAll()
+                .requestMatchers("/api/v1/parking-spots/**").permitAll()   // ✅ allow all parking spots endpoints
+                .anyRequest().permitAll()
+            );
+
         http.authenticationProvider(daoAuthenticationProvider());
         http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
