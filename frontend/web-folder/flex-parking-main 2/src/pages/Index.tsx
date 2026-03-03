@@ -34,12 +34,19 @@ export default function Index() {
       spot.country?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleBookSpot = (spotId: number) => { // ✅ number
-    setSelectedSpotId(spotId);
+  const handleBookSpot = (rawSpotId: unknown) => {
+    const id = Number(rawSpotId);
+
+    if (!Number.isFinite(id) || id <= 0) {
+      console.log("Book Now clicked but spot id is invalid:", rawSpotId);
+      return;
+    }
+
+    setSelectedSpotId(id);
     setBookingDialogOpen(true);
   };
 
-  const selectedSpotData = spots?.find((s) => s.id === selectedSpotId);
+  const selectedSpotData = spots?.find((s) => Number(s.id) === selectedSpotId);
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -57,7 +64,7 @@ export default function Index() {
       </header>
 
       <main className="container mx-auto max-w-4xl p-4">
-        {!loading && filteredSpots && filteredSpots.length > 0 && (
+        {!bookingDialogOpen && !loading && filteredSpots && filteredSpots.length > 0 && (
           <div className="mb-4">
             <ParkingSpotsMap spots={filteredSpots} height="40vh" />
           </div>
