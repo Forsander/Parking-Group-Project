@@ -17,7 +17,7 @@ import { ParkingSpotsMap } from "@/components/ParkingSpotsMap";
 
 export default function Index() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSpotId, setSelectedSpotId] = useState<number | null>(null);
+  const [selectedSpotId, setSelectedSpotId] = useState<number | null>(null); // ✅ number
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
 
   const { spots, loading, fetchActiveSpots } = useParkingSpotStore();
@@ -34,19 +34,12 @@ export default function Index() {
       spot.country?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleBookSpot = (rawSpotId: unknown) => {
-    const id = Number(rawSpotId);
-
-    if (!Number.isFinite(id) || id <= 0) {
-      console.log("Book Now clicked but spot id is invalid:", rawSpotId);
-      return;
-    }
-
-    setSelectedSpotId(id);
+  const handleBookSpot = (spotId: number) => { // ✅ number
+    setSelectedSpotId(spotId);
     setBookingDialogOpen(true);
   };
 
-  const selectedSpotData = spots?.find((s) => Number(s.id) === selectedSpotId);
+  const selectedSpotData = spots?.find((s) => s.id === selectedSpotId);
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -64,8 +57,7 @@ export default function Index() {
       </header>
 
       <main className="container mx-auto max-w-4xl p-4">
-        {/* ✅ Hide map when booking dialog is open */}
-        {!bookingDialogOpen && !loading && filteredSpots && filteredSpots.length > 0 && (
+        {!loading && filteredSpots && filteredSpots.length > 0 && (
           <div className="mb-4">
             <ParkingSpotsMap spots={filteredSpots} height="40vh" />
           </div>
@@ -133,7 +125,7 @@ export default function Index() {
 
       {selectedSpotData && selectedSpotId !== null && (
         <BookingDialog
-          spotId={selectedSpotId}
+          spotId={selectedSpotId} // ✅ number
           pricePerHour={Number(selectedSpotData.price_per_hour)}
           pricePerDay={Number(selectedSpotData.price_per_day || 0)}
           open={bookingDialogOpen}

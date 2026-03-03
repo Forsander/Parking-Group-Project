@@ -40,38 +40,7 @@ export const useParkingSpotStore = create<ParkingSpotState>((set) => ({
 
   fetchActiveSpots: async () => {
     set({ loading: true });
-
-    const res = await api.get<any>("/parking-spots/all/active-spots");
-
-    // ✅ support either:
-    // 1) backend returns ParkingSpot[] directly
-    // 2) backend returns ApiResponse { message, data: ParkingSpot[] }
-    const arr: any[] = Array.isArray(res) ? res : (res?.data ?? []);
-
-    const spots = arr
-      .map((s: any) => {
-        // ✅ try common id field names
-        const rawId =
-          s?.id ??
-          s?.spotId ??
-          s?.spot_id ??
-          s?.parkingSpotId ??
-          s?.parking_spot_id;
-
-        const id = Number(rawId);
-
-        return {
-          ...s,
-          id, // force numeric
-        };
-      })
-      .filter((s: any) => Number.isFinite(s.id) && s.id > 0);
-
-    // If we filtered everything, log the first item so we can see what the backend actually sends
-    if (arr.length > 0 && spots.length === 0) {
-      console.log("⚠️ No valid spot ids found. First spot object was:", arr[0]);
-    }
-
+    const spots = await api.get<ParkingSpot[]>("/parking-spots/all/active-spots");
     set({ spots, loading: false });
   },
 

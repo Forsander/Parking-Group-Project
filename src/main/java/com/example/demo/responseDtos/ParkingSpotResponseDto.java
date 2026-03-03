@@ -1,13 +1,12 @@
 package com.example.demo.responseDtos;
 
+import lombok.Data;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import lombok.Data;
-
 @Data
 public class ParkingSpotResponseDto {
-    private Long id;
     private String title;
     private String description;
     private String address;
