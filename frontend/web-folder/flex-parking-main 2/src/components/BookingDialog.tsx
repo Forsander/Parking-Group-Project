@@ -58,6 +58,7 @@ export function BookingDialog({ spotId, pricePerHour, pricePerDay, open, onOpenC
   const withSeconds = (v: string) => (v.length === 16 ? `${v}:00` : v);
 
   const onSubmit = async (values: BookingFormValues) => {
+    console.log("Booking spotId =", spotId, typeof spotId);
     try {
       await createBooking({
         spotId,

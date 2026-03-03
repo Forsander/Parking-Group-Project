@@ -1,11 +1,10 @@
 package com.example.demo.service.booking;
 
+import java.util.List;
+
 import com.example.demo.requests.booking.CreateBookingRequest;
 import com.example.demo.responseDtos.BookingResponseDto;
 import com.example.demo.security.user.AppUserDetails;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 public interface IBookingService {
 

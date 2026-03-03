@@ -60,8 +60,16 @@ export const useBookingStore = create<BookingState>((set) => ({
   },
 
   createBooking: async (payload: CreateBookingPayload) => {
+    const spotId = Number(payload.spotId);
+
+    // ✅ guard: prevents NaN -> null
+    if (!Number.isFinite(spotId) || spotId <= 0) {
+      console.log("Invalid spotId in createBooking payload:", payload);
+      throw new Error("Invalid parking spot id (spotId).");
+    }
+
     const body = {
-      spotId: Number(payload.spotId),
+      spotId,
       startTime: payload.startTime,
       endTime: payload.endTime,
     };
@@ -73,8 +81,15 @@ export const useBookingStore = create<BookingState>((set) => ({
   },
 
   updateBooking: async (id: number, payload: CreateBookingPayload) => {
+    const spotId = Number(payload.spotId);
+
+    if (!Number.isFinite(spotId) || spotId <= 0) {
+      console.log("Invalid spotId in updateBooking payload:", payload);
+      throw new Error("Invalid parking spot id (spotId).");
+    }
+
     const body = {
-      spotId: Number(payload.spotId),
+      spotId,
       startTime: payload.startTime,
       endTime: payload.endTime,
     };
