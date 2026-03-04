@@ -7,7 +7,6 @@ export type User = {
     id: number;
     email: string;
     role: Role;
-    // add more if backend returns them
 };
 
 type LoginResponse = {
@@ -25,7 +24,7 @@ export async function logout(): Promise<void> {
     try {
         await api.post<null>("/auth/logout");
     } catch {
-        // ignore backend failure, just clear token
+
     }
     api.clearToken();
 }

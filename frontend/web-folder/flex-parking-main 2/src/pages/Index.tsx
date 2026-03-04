@@ -137,6 +137,7 @@ export default function Index() {
           pricePerDay={Number(selectedSpotData.price_per_day || 0)}
           open={bookingDialogOpen}
           onOpenChange={setBookingDialogOpen}
+          onBooked={() => fetchActiveSpots()}
         />
       )}
 

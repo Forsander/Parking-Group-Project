@@ -64,7 +64,7 @@ public class BookingScheduler {
     }
 
     private void cancelUnpaidPendingBookings(LocalDateTime now) {
-        LocalDateTime cutoff = now.minusMinutes(15); // configurable timeout
+        LocalDateTime cutoff = now.minusHours(2);
         List<Booking> toCancel = bookingRepository.findByStatusAndCreatedAtBefore(
                 BookingStatus.PENDING, cutoff
         );

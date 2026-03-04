@@ -15,6 +15,7 @@ const bookingSchema = z.object({
   endTime: z.string().min(1, "End time is required"),
 });
 
+
 type BookingFormValues = z.infer<typeof bookingSchema>;
 
 interface BookingDialogProps {
@@ -23,9 +24,10 @@ interface BookingDialogProps {
   pricePerDay: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onBooked?: () => void;
 }
 
-export function BookingDialog({ spotId, pricePerHour, pricePerDay, open, onOpenChange }: BookingDialogProps) {
+export function BookingDialog({ spotId, pricePerHour, pricePerDay, open, onOpenChange, onBooked, }: BookingDialogProps) {
   const { vehicles, fetchVehicles } = useVehicleStore();
   const { createBooking } = useBookingStore();
 
@@ -64,6 +66,8 @@ export function BookingDialog({ spotId, pricePerHour, pricePerDay, open, onOpenC
         startTime: withSeconds(values.startTime),
         endTime: withSeconds(values.endTime),
       });
+
+      onBooked?.();
       toast.success("Booking created successfully!");
       form.reset();
       onOpenChange(false);

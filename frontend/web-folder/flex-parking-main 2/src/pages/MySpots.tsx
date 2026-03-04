@@ -5,13 +5,14 @@ import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, MapPin, DollarSign } from "lucide-react";
+import { Plus, MapPin, DollarSign, Trash2 } from "lucide-react";
 import { AddSpotDialog } from "@/components/AddSpotDialog";
 import { PageHeader } from "@/components/PageHeader";
 
 export default function MySpots() {
   const { user } = useAuth();
-  const { userSpots, loading, fetchUserSpots } = useParkingSpotStore();
+  const { userSpots, loading, fetchUserSpots, deleteSpot } = useParkingSpotStore();
+
 
   useEffect(() => {
     if (user) {
@@ -45,9 +46,22 @@ export default function MySpots() {
                         {spot.address}
                       </CardDescription>
                     </div>
-                    <Badge variant={spot.is_available ? "default" : "secondary"}>
-                      {spot.is_available ? "Available" : "Unavailable"}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={spot.is_available ? "default" : "secondary"}>
+                        {spot.is_available ? "Available" : "Unavailable"}
+                      </Badge>
+
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        onClick={() => {
+                          if (confirm("Delete this parking spot?")) deleteSpot(spot.id);
+                        }}
+                        aria-label="Delete spot"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent>

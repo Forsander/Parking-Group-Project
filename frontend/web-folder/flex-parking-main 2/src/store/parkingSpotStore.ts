@@ -76,7 +76,7 @@ export const useParkingSpotStore = create<ParkingSpotState>((set) => ({
     }));
   },
 
-  deleteSpot: async (id) => {
+  deleteSpot: async (id: number) => {
     await api.del(`/parking-spots/parking-spot/${id}/delete`);
     set((state) => ({ userSpots: state.userSpots.filter((s) => s.id !== id) }));
   },

@@ -27,5 +27,7 @@ public interface IBookingService {
     //Get bookings by spot
     public List<BookingResponseDto> getBookingsBySpot(Long spotId);
 
+    List<BookingResponseDto> getPendingRequestsForMySpots(AppUserDetails userDetails);
+
     List<BookingResponseDto> getAllBookings();
 }

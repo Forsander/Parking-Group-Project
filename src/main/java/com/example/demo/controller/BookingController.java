@@ -111,6 +111,18 @@ public class BookingController {
         }
     }
 
+    //Last minute add on for fixing bookings lol
+    @GetMapping("/owner/pending")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public ResponseEntity<ApiResponse> getPendingForOwner(@AuthenticationPrincipal AppUserDetails userDetails) {
+        try {
+            List<BookingResponseDto> bookings = IBookingService.getPendingRequestsForMySpots(userDetails);
+            return ResponseEntity.ok(new ApiResponse("Pending requests fetched", bookings));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ApiResponse("Error fetching pending requests", e.getMessage()));
+        }
+    }
+
     /**
      * ADMIN: GET all bookings
      * @return ApiResponse with list of all bookings

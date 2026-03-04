@@ -67,7 +67,7 @@ public class BookingService implements IBookingService {
      * Calculates the total price based on the duration of the booking.
      * Also initializes a Stripe PaymentIntent and returns its client secret in the DTO.
      */
-    @Value("${payments.enabled.false}")
+    @Value("${payments.enabled:false}")
     private boolean paymentEnabled;
 
     @Override
@@ -89,16 +89,24 @@ public class BookingService implements IBookingService {
         // Simple validation for booking times
         validateBookingTimes(start, end);
 
-        // Prevent double booking, with 5 minutes buffer
-        boolean overlapping = bookingRepository.existsBySpotAndStartTimeLessThanEqualAndEndTimeGreaterThanEqual(
+        // Ensure booking is within the spot's availability window (if set)
+        if (spot.getAvailable_from() != null && start.isBefore(spot.getAvailable_from())) {
+            throw new ActionNotAllowedException("Booking start time is before this spot's available-from time");
+        }
+        if (spot.getAvailable_to() != null && end.isAfter(spot.getAvailable_to())) {
+            throw new ActionNotAllowedException("Booking end time is after this spot's available-to time");
+        }
+
+        // Prevent double booking, with 5 minutes buffer (ignore CANCELLED bookings)
+        boolean overlapping = bookingRepository.hasOverlapForStatuses(
                 spot,
+                List.of(BookingStatus.PENDING, BookingStatus.CONFIRMED),
                 end.plusMinutes(5),
                 start.minusMinutes(5)
         );
         if (overlapping) {
             throw new ActionNotAllowedException("Parking spot is already booked during this period (5 min buffer included)");
         }
-
         // Calculate total price
         BigDecimal price = calculatePrice(spot, start, end);
 
@@ -112,6 +120,10 @@ public class BookingService implements IBookingService {
 
         Booking savedBooking = bookingRepository.save(booking);
 
+        //Added for the MVP for the ICT showroom so that it hides bookings that have been booked
+        spot.setActive(false);
+        parkingSpotRepository.save(spot);
+        System.out.println("Spot " + spot.getId() + " isActive = " + spot.isActive());
         // Initiate Stripe payment for this booking via PaymentService
         // Had to be postponed due to some last minute errors with bookings
         String clientSecret = null;
@@ -155,6 +167,10 @@ public class BookingService implements IBookingService {
         booking.setStatus(BookingStatus.CANCELLED);
         bookingRepository.save(booking);
 
+        //MVP for ICT showroom
+        booking.getSpot().setActive(true);
+        parkingSpotRepository.save(booking.getSpot());
+
         // If you later support automatic refunds, implement it via PaymentService here.
 
         return convertToDto(booking);
@@ -191,9 +207,17 @@ public class BookingService implements IBookingService {
 
         validateBookingTimes(newStart, newEnd);
 
+        if (booking.getSpot().getAvailable_from() != null && newStart.isBefore(booking.getSpot().getAvailable_from())) {
+            throw new ActionNotAllowedException("New start time is before this spot's available-from time");
+        }
+        if (booking.getSpot().getAvailable_to() != null && newEnd.isAfter(booking.getSpot().getAvailable_to())) {
+            throw new ActionNotAllowedException("New end time is after this spot's available-to time");
+        }
+
         // Prevent overlap with other bookings on same spot
-        boolean overlapping = bookingRepository.existsBySpotAndStartTimeLessThanEqualAndEndTimeGreaterThanEqual(
+        boolean overlapping = bookingRepository.hasOverlapForStatuses(
                 booking.getSpot(),
+                List.of(BookingStatus.PENDING, BookingStatus.CONFIRMED),
                 newEnd.plusMinutes(5),
                 newStart.minusMinutes(5)
         );
@@ -213,12 +237,17 @@ public class BookingService implements IBookingService {
         return convertToDto(booking);
     }
 
+
     @Override
     public List<BookingResponseDto> getBookingsByRenter(Long renterId) {
         User renter = userRepository.findById(renterId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        List<Booking> bookings = bookingRepository.findByRenter(renter);
+        List<Booking> bookings = bookingRepository.findByRenter(renter)
+                .stream()
+                .filter(b -> b.getStatus() != BookingStatus.CANCELLED)
+                .toList();
+
         return getConvertedBookings(bookings);
     }
 
@@ -237,6 +266,16 @@ public class BookingService implements IBookingService {
     public List<BookingResponseDto> getAllBookings() {
         List<Booking> bookings = bookingRepository.findAll();
         return getConvertedBookings(bookings);
+    }
+
+    public List<BookingResponseDto> getPendingRequestsForMySpots(AppUserDetails userDetails) {
+        User owner = userRepository.findByEmail(userDetails.getUsername());
+        if (owner == null) throw new ResourceNotFoundException("User not found");
+
+        List<Booking> pending = bookingRepository
+                .findByStatusAndSpot_CreatedByOrderByStartTimeAsc(BookingStatus.PENDING, owner);
+
+        return getConvertedBookings(pending);
     }
 
     // Private Helper Methods
