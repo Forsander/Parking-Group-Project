@@ -15,7 +15,7 @@ export interface ParkingSpot {
   available_to: string;
   price_per_hour: number;
   price_per_day: number;
-  is_available: boolean;
+  active: boolean;
 }
 
 interface ParkingSpotState {
@@ -77,15 +77,14 @@ export const useParkingSpotStore = create<ParkingSpotState>((set) => ({
   },
 
   deleteSpot: async (id: number) => {
-    await api.del(`/parking-spots/parking-spot/${id}/delete`);
+    await api.put(`/parking-spots/parking-spot/${id}/deactivate`);
     set((state) => ({ userSpots: state.userSpots.filter((s) => s.id !== id) }));
   },
 
-  activateSpot: async (id) => {
-    const updated = await api.put<ParkingSpot>(`/parking-spots/parking-spot/${id}/activate`);
-    set((state) => ({
-      userSpots: state.userSpots.map((s) => (s.id === id ? updated : s)),
-    }));
+  activateSpot: async (id: number) => {
+    await api.put(`/parking-spots/parking-spot/${id}/activate`);
+    const userSpots = await api.get<ParkingSpot[]>("/parking-spots/all/user-spots");
+    set({ userSpots });
   },
 
   deactivateSpot: async (id) => {

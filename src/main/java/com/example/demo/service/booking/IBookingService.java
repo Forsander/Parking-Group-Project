@@ -15,6 +15,9 @@ public interface IBookingService {
 
     BookingResponseDto createBooking(AppUserDetails userDetails, CreateBookingRequest request);
 
+    BookingResponseDto acceptBooking(AppUserDetails userDetails, Long bookingId);
+
+    BookingResponseDto rejectBooking(AppUserDetails userDetails, Long bookingId);
     //Cancel a booking can do 1 h before booking
     public BookingResponseDto cancelBooking (AppUserDetails userDetails, Long bookingId);
 

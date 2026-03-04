@@ -8,27 +8,76 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, MapPin, DollarSign, Trash2 } from "lucide-react";
 import { AddSpotDialog } from "@/components/AddSpotDialog";
 import { PageHeader } from "@/components/PageHeader";
+import { useBookingStore } from "@/store/bookingStore";
+import { toast } from "sonner";
 
 export default function MySpots() {
   const { user } = useAuth();
-  const { userSpots, loading, fetchUserSpots, deleteSpot } = useParkingSpotStore();
-
+  const { userSpots, loading, fetchUserSpots, deleteSpot, activateSpot } = useParkingSpotStore();
+  const { pendingRequests, fetchPendingForOwner, acceptBooking, rejectBooking } = useBookingStore();
 
   useEffect(() => {
     if (user) {
       fetchUserSpots();
+      fetchPendingForOwner();
     }
-  }, [user, fetchUserSpots]);
+  }, [user, fetchUserSpots, fetchPendingForOwner]);
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <PageHeader title="My Parking Spots" logoSrc="favicon.ico">
+      <PageHeader title="My Parking Spots" logoSrc="/favicon.ico">
         <div className="flex justify-end">
           <AddSpotDialog />
         </div>
       </PageHeader>
 
       <main className="container mx-auto max-w-lg p-4">
+        {pendingRequests.length > 0 && (
+          <div className="mb-4 space-y-2">
+            <h2 className="text-sm font-semibold">Pending Requests</h2>
+
+            {pendingRequests.map((b: any) => (
+              <Card key={b.id}>
+                <CardContent className="flex items-center justify-between p-4">
+                  <div>
+                    <div className="font-medium">{b.spotLocation ?? `Spot #${b.spotId}`}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {b.startTime} → {b.endTime}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={async () => {
+                        await acceptBooking(b.id);
+                        toast.success("Accepted");
+                        await fetchPendingForOwner();
+                        await fetchUserSpots();
+                      }}
+                    >
+                      Accept
+                    </Button>
+
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={async () => {
+                        await rejectBooking(b.id);
+                        toast.success("Declined");
+                        await fetchPendingForOwner();
+                        await fetchUserSpots();
+                      }}
+                    >
+                      Decline
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+
         {loading ? (
           <div className="flex justify-center py-8">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
@@ -47,20 +96,45 @@ export default function MySpots() {
                       </CardDescription>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge variant={spot.is_available ? "default" : "secondary"}>
-                        {spot.is_available ? "Available" : "Unavailable"}
+                      <Badge variant={spot.active ? "default" : "secondary"}>
+                        {spot.active ? "Available" : "Unavailable"}
                       </Badge>
 
-                      <Button
-                        variant="destructive"
-                        size="icon"
-                        onClick={() => {
-                          if (confirm("Delete this parking spot?")) deleteSpot(spot.id);
-                        }}
-                        aria-label="Delete spot"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {!spot.active && (
+                        <Button
+                          size="sm"
+                          onClick={async () => {
+                            try {
+                              await activateSpot(spot.id);
+                              toast.success("Activated");
+                              await fetchUserSpots();
+                            } catch (e: any) {
+                              toast.error(e?.message || "Failed to activate");
+                            }
+                          }}
+                        >
+                          Activate
+                        </Button>
+                      )}
+
+                      {spot.active && (
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          onClick={async () => {
+                            if (!confirm("Remove this spot from listings?")) return;
+                            try {
+                              await deleteSpot(spot.id);
+                              toast.success("Removed from listings");
+                            } catch (e: any) {
+                              toast.error(e?.message || "Failed to remove listing");
+                            }
+                          }}
+                          aria-label="Remove listing"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </CardHeader>
@@ -80,9 +154,7 @@ export default function MySpots() {
           </div>
         ) : (
           <div className="py-12 text-center">
-            <p className="mb-4 text-muted-foreground">
-              You haven't listed any parking spots yet.
-            </p>
+            <p className="mb-4 text-muted-foreground">You haven't listed any parking spots yet.</p>
             <AddSpotDialog
               trigger={
                 <Button>

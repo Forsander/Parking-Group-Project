@@ -20,4 +20,5 @@ public class ParkingSpotResponseDto {
     private LocalDateTime available_to;
     private double price_per_hour;
     private double price_per_day;
+    private boolean isActive;
 }

@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import com.example.demo.repository.ParkingSpotRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,7 +24,7 @@ import java.util.List;
 @Slf4j
 public class BookingScheduler {
     private final BookingRepository bookingRepository;
-
+    private final ParkingSpotRepository parkingSpotRepository;
     /**
      * Runs every 5 minutes to keep booking states in sync with time.
      */
@@ -71,9 +72,11 @@ public class BookingScheduler {
 
         for (Booking booking : toCancel) {
             booking.setStatus(BookingStatus.CANCELLED);
+            booking.getSpot().setActive(true);
             log.info("Booking {} cancelled due to inactivity", booking.getId());
-            // TODO: trigger refund if payment was pre-authorized
         }
+
         bookingRepository.saveAll(toCancel);
+        parkingSpotRepository.saveAll(toCancel.stream().map(Booking::getSpot).toList());
     }
 }

@@ -278,6 +278,55 @@ public class BookingService implements IBookingService {
         return getConvertedBookings(pending);
     }
 
+    @Override
+    public BookingResponseDto acceptBooking(AppUserDetails userDetails, Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
+
+        User owner = userRepository.findByEmail(userDetails.getUsername());
+        if (owner == null) throw new ResourceNotFoundException("User not found");
+
+        if (!booking.getSpot().getCreatedBy().equals(owner)) {
+            throw new ActionNotAllowedException("Only the spot owner can accept this booking");
+        }
+
+        if (booking.getStatus() != BookingStatus.PENDING) {
+            throw new ActionNotAllowedException("Only PENDING bookings can be accepted");
+        }
+
+        booking.setStatus(BookingStatus.CONFIRMED);
+        bookingRepository.save(booking);
+
+        // keep spot inactive so it stays hidden in Browse (MVP)
+        return convertToDto(booking);
+    }
+
+    @Override
+    public BookingResponseDto rejectBooking(AppUserDetails userDetails, Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
+
+        User owner = userRepository.findByEmail(userDetails.getUsername());
+        if (owner == null) throw new ResourceNotFoundException("User not found");
+
+        if (!booking.getSpot().getCreatedBy().equals(owner)) {
+            throw new ActionNotAllowedException("Only the spot owner can reject this booking");
+        }
+
+        if (booking.getStatus() != BookingStatus.PENDING) {
+            throw new ActionNotAllowedException("Only PENDING bookings can be rejected");
+        }
+
+        booking.setStatus(BookingStatus.CANCELLED); // MVP = "Declined"
+        bookingRepository.save(booking);
+
+        // rejected -> spot visible again
+        booking.getSpot().setActive(true);
+        parkingSpotRepository.save(booking.getSpot());
+
+        return convertToDto(booking);
+    }
+
     // Private Helper Methods
 
     private void validateBookingTimes(LocalDateTime start, LocalDateTime end) {

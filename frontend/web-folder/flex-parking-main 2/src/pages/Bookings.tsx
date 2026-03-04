@@ -37,9 +37,9 @@ export default function Bookings() {
                       <CardTitle className="text-lg">
                         {booking.parking_spot?.title}
                       </CardTitle>
-                      <CardDescription className="mt-1 flex items-center gap-1">
+                      <CardDescription className="mt-1 flex items-center gap-1 text-foreground/80">
                         <MapPin className="h-3 w-3" />
-                        {booking.parking_spot?.address}
+                        <span>{booking.spotLocation ?? booking.parking_spot?.address ?? "—"}</span>
                       </CardDescription>
                     </div>
                     <Badge
@@ -56,15 +56,15 @@ export default function Bookings() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex items-center gap-2 text-sm text-slate-700">
+                    <Calendar className="h-4 w-4 text-slate-500" />
                     <span>
                       {format(new Date(booking.startTime), "PPp")} -{" "}
                       {format(new Date(booking.endTime), "p")}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 text-lg font-semibold text-primary">
-                    <DollarSign className="h-5 w-5" />
+                  <div className="flex items-center gap-2 text-lg font-semibold text-slate-800">
+                    <DollarSign className="h-5 w-5 text-slate-600" />
                     {booking.totalAmount}
                   </div>
                 </CardContent>

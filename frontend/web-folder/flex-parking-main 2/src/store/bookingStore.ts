@@ -10,6 +10,7 @@ export interface Booking {
   totalAmount?: number;
   status?: string;
   clientSecret?: string;
+  spotLocation?: string;
 
   parking_spot?: {
     title: string;
@@ -35,11 +36,18 @@ interface BookingState {
   createBooking: (payload: CreateBookingPayload) => Promise<Booking>;
   updateBooking: (id: number, payload: CreateBookingPayload) => Promise<void>;
   cancelBooking: (id: number) => Promise<void>;
+
+  pendingRequests: any[];
+  fetchPendingForOwner: () => Promise<void>;
+  acceptBooking: (bookingId: number) => Promise<void>;
+  rejectBooking: (bookingId: number) => Promise<void>;
 }
 
 export const useBookingStore = create<BookingState>((set) => ({
   bookings: [],
   loading: false,
+
+  pendingRequests: [],
 
   fetchRenterBookings: async (renterId: number) => {
     set({ loading: true });
@@ -93,4 +101,25 @@ export const useBookingStore = create<BookingState>((set) => ({
       bookings: state.bookings.map((b) => (b.id === id ? updated : b)),
     }));
   },
+
+    fetchPendingForOwner: async () => {
+        const pendingRequests = await api.get<any[]>(`/bookings/owner/pending`);
+        set({ pendingRequests });
+    },
+
+    acceptBooking: async (bookingId: number) => {
+        const updated = await api.put<any>(`/bookings/${bookingId}/accept`);
+        set((state) => ({
+          pendingRequests: state.pendingRequests.filter((b) => b.id !== bookingId),
+          bookings: state.bookings.map((b) => (b.id === bookingId ? { ...b, ...updated } : b)),
+        }));
+    },
+
+    rejectBooking: async (bookingId: number) => {
+        const updated = await api.put<any>(`/bookings/${bookingId}/reject`);
+        set((state) => ({
+          pendingRequests: state.pendingRequests.filter((b) => b.id !== bookingId),
+          bookings: state.bookings.map((b) => (b.id === bookingId ? { ...b, ...updated } : b)),
+        }));
+    },
 }));

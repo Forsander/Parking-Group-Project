@@ -79,6 +79,30 @@ public class BookingController {
         }
     }
 
+    @PutMapping("/{bookingId}/accept")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public ResponseEntity<ApiResponse> acceptBooking(@PathVariable Long bookingId,
+                                                     @AuthenticationPrincipal AppUserDetails userDetails) {
+        try {
+            BookingResponseDto dto = IBookingService.acceptBooking(userDetails, bookingId);
+            return ResponseEntity.ok(new ApiResponse("Booking accepted", dto));
+        } catch (ResourceNotFoundException | ActionNotAllowedException e) {
+            return ResponseEntity.badRequest().body(new ApiResponse("Error accepting booking", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/{bookingId}/reject")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public ResponseEntity<ApiResponse> rejectBooking(@PathVariable Long bookingId,
+                                                     @AuthenticationPrincipal AppUserDetails userDetails) {
+        try {
+            BookingResponseDto dto = IBookingService.rejectBooking(userDetails, bookingId);
+            return ResponseEntity.ok(new ApiResponse("Booking rejected", dto));
+        } catch (ResourceNotFoundException | ActionNotAllowedException e) {
+            return ResponseEntity.badRequest().body(new ApiResponse("Error rejecting booking", e.getMessage()));
+        }
+    }
+
     /**
      * GET bookings by renter
      * @param renterId
