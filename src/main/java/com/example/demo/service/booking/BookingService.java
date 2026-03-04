@@ -25,6 +25,8 @@ import com.example.demo.security.user.AppUserDetails;
 import com.example.demo.service.payment.PaymentService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+
 
 /**
  * Service for managing bookings of parking spots.
@@ -57,12 +59,17 @@ public class BookingService implements IBookingService {
     private final ModelMapper modelMapper;
     private final PaymentService paymentService;
 
+
+
     /**
      * Create a new booking for a parking spot.
      * Validates the booking request to prevent double bookings and ensure proper time frames.
      * Calculates the total price based on the duration of the booking.
      * Also initializes a Stripe PaymentIntent and returns its client secret in the DTO.
      */
+    @Value("${payments.enabled.false}")
+    private boolean paymentEnabled;
+
     @Override
     public BookingResponseDto createBooking(AppUserDetails userDetails, CreateBookingRequest request) {
 
@@ -106,14 +113,21 @@ public class BookingService implements IBookingService {
         Booking savedBooking = bookingRepository.save(booking);
 
         // Initiate Stripe payment for this booking via PaymentService
-        // Pick the currency you actually use ("eur"/"usd"/...)
-        String clientSecret = paymentService.createPaymentIntentForBooking(savedBooking.getId(), "eur");
+        // Had to be postponed due to some last minute errors with bookings
+        String clientSecret = null;
+
+        if (paymentEnabled) {
+            clientSecret = paymentService.createPaymentIntentForBooking(savedBooking.getId(), "eur");
+        } else {
+            clientSecret = "dev_dummy_intent";
+        }
 
         BookingResponseDto dto = convertToDto(savedBooking);
         dto.setClientSecret(clientSecret);
-
         return dto;
     }
+
+
 
     /**
      * Cancel an existing booking.

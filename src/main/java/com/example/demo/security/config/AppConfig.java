@@ -65,7 +65,7 @@ public class AppConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/auth/**").permitAll()
-                .requestMatchers("/api/v1/parking-spots/**").permitAll()   // ✅ allow all parking spots endpoints
+                .requestMatchers("/api/v1/parking-spots/**").permitAll()
                 .anyRequest().permitAll()
             );
 
@@ -73,6 +73,7 @@ public class AppConfig {
         http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
+
 
 }
 

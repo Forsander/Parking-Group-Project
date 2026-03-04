@@ -61,7 +61,7 @@ public class PaymentService implements IPaymentService {
     public void handlePaymentSucceeded(PaymentIntent paymentIntent) {
         String bookingIdStr = paymentIntent.getMetadata().get("bookingId");
         if (bookingIdStr == null) {
-            System.out.println("⚠️ No bookingId in PaymentIntent metadata.");
+            System.out.println("No bookingId in PaymentIntent metadata.");
             return;
         }
 
@@ -71,9 +71,9 @@ public class PaymentService implements IPaymentService {
             if (booking.getStatus() == BookingStatus.PENDING) {
                 booking.setStatus(BookingStatus.CONFIRMED);
                 bookingRepository.save(booking);
-                System.out.println("✅ Booking " + bookingId + " marked as CONFIRMED.");
+                System.out.println("Booking " + bookingId + " marked as CONFIRMED.");
             } else {
-                System.out.println("ℹ️ Booking " + bookingId + " was not PENDING (status: " + booking.getStatus() + ")");
+                System.out.println("Booking " + bookingId + " was not PENDING (status: " + booking.getStatus() + ")");
             }
         });
     }
@@ -82,7 +82,7 @@ public class PaymentService implements IPaymentService {
     public void handlePaymentFailed(PaymentIntent paymentIntent) {
         String bookingIdStr = paymentIntent.getMetadata().get("bookingId");
         if (bookingIdStr == null) {
-            System.out.println("⚠️ No bookingId in PaymentIntent metadata.");
+            System.out.println("No bookingId in PaymentIntent metadata.");
             return;
         }
 
@@ -90,7 +90,7 @@ public class PaymentService implements IPaymentService {
 
         bookingRepository.findById(bookingId).ifPresent(booking -> {
             // You could add a FAILED status if you want; for now just log.
-            System.out.println("❌ Payment failed for booking " + bookingId);
+            System.out.println("Payment failed for booking " + bookingId);
         });
     }
 }

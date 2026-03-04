@@ -17,7 +17,7 @@ import { ParkingSpotsMap } from "@/components/ParkingSpotsMap";
 
 export default function Index() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSpotId, setSelectedSpotId] = useState<number | null>(null); // ✅ number
+  const [selectedSpotId, setSelectedSpotId] = useState<number | null>(null);
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
 
   const { spots, loading, fetchActiveSpots } = useParkingSpotStore();
@@ -132,7 +132,7 @@ export default function Index() {
 
       {selectedSpotData && selectedSpotId !== null && (
         <BookingDialog
-          spotId={selectedSpotId} // ✅ number
+          spotId={selectedSpotId}
           pricePerHour={Number(selectedSpotData.price_per_hour)}
           pricePerDay={Number(selectedSpotData.price_per_day || 0)}
           open={bookingDialogOpen}
