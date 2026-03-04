@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, DollarSign } from "lucide-react";
 import { format } from "date-fns";
+import { PageHeader } from "@/components/PageHeader"
 
 export default function Bookings() {
   const { user } = useAuth();
@@ -19,9 +20,7 @@ export default function Bookings() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <header className="border-b bg-card p-4">
-        <h1 className="text-2xl font-bold">My Bookings</h1>
-      </header>
+      <PageHeader title="My Bookings" logoSrc="favicon.ico" />
 
       <main className="container mx-auto max-w-lg p-4">
         {loading ? (

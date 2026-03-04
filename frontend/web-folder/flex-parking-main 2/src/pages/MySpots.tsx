@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Plus, MapPin, DollarSign } from "lucide-react";
 import { AddSpotDialog } from "@/components/AddSpotDialog";
+import { PageHeader } from "@/components/PageHeader";
 
 export default function MySpots() {
   const { user } = useAuth();
@@ -20,12 +21,11 @@ export default function MySpots() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <header className="border-b bg-card p-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">My Parking Spots</h1>
+      <PageHeader title="My Parking Spots" logoSrc="favicon.ico">
+        <div className="flex justify-end">
           <AddSpotDialog />
         </div>
-      </header>
+      </PageHeader>
 
       <main className="container mx-auto max-w-lg p-4">
         {loading ? (

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParkingSpotStore } from "@/store/parkingSpotStore";
 import { BottomNav } from "@/components/BottomNav";
 import { Input } from "@/components/ui/input";
+import { PageHeader } from "@/components/PageHeader";
 import {
   Card,
   CardContent,
@@ -50,18 +51,17 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <header className="sticky top-0 z-10 border-b bg-card p-4">
-        <h1 className="mb-3 text-2xl font-bold">Find Parking</h1>
+      <PageHeader title="Find Parking" logoSrc="favicon.ico">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search by location or title..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
+            className="pl-9 bg-card text-card-foreground"
           />
         </div>
-      </header>
+      </PageHeader>
 
       <main className="container mx-auto max-w-4xl p-4">
         {!bookingDialogOpen && !loading && filteredSpots && filteredSpots.length > 0 && (

@@ -12,7 +12,7 @@ export function BottomNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-primary/20 bg-primary">
       <div className="mx-auto flex max-w-lg">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -23,8 +23,8 @@ export function BottomNav() {
               to={item.path}
               className={`flex flex-1 flex-col items-center gap-1 py-3 text-xs transition-colors ${
                 isActive
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "text-primary-foreground"
+                  : "text-primary-foreground/70 hover:text-primary-foreground"
               }`}
             >
               <Icon className="h-5 w-5" />

@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { LogOut, Mail, Car } from "lucide-react";
 import { AddVehicleDialog } from "@/components/AddVehicleDialog";
+import { PageHeader } from "@/components/PageHeader";
 
 export default function Profile() {
   const { user, signOut } = useAuth();
@@ -22,9 +23,7 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <header className="border-b bg-card p-4">
-        <h1 className="text-2xl font-bold">Profile</h1>
-      </header>
+      <PageHeader title="Profile" logoSrc="favicon.ico" />
 
       <main className="container mx-auto max-w-lg p-4">
         <div className="space-y-4">
