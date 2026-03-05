@@ -142,7 +142,7 @@ export function BookingDialog({
 
               {totalPrice > 0 && (
                 <div className="rounded-lg bg-muted p-3">
-                  <p className="text-sm font-medium">Total Price: ${totalPrice.toFixed(2)}</p>
+                  <p className="text-sm font-medium text-slate-500">Total Price: ${totalPrice.toFixed(2)}</p>
                 </div>
               )}
 
