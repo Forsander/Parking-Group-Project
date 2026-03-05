@@ -11,6 +11,8 @@ export interface Booking {
   status?: string;
   clientSecret?: string;
   spotLocation?: string;
+  ownerBookings: any[];
+  fetchOwnerBookings: () => Promise<void>;
 
   parking_spot?: {
     title: string;
@@ -79,6 +81,13 @@ export const useBookingStore = create<BookingState>((set) => ({
     set((state) => ({ bookings: [created, ...state.bookings] }));
     return created;
   },
+
+    ownerBookings: [],
+
+    fetchOwnerBookings: async () => {
+        const ownerBookings = await api.get<any[]>("/bookings/owner/all");
+        set({ ownerBookings });
+    },
 
   updateBooking: async (id: number, payload: CreateBookingPayload) => {
     const body = {

@@ -138,6 +138,8 @@ export default function Index() {
           open={bookingDialogOpen}
           onOpenChange={setBookingDialogOpen}
           onBooked={() => fetchActiveSpots()}
+          availableFrom={selectedSpotData.available_from}
+          availableTo={selectedSpotData.available_to}
         />
       )}
 

@@ -119,6 +119,17 @@ public class BookingController {
         }
     }
 
+    @GetMapping("/owner/all")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public ResponseEntity<ApiResponse> getAllForOwner(@AuthenticationPrincipal AppUserDetails userDetails) {
+        try {
+            List<BookingResponseDto> bookings = IBookingService.getBookingsForOwner(userDetails);
+            return ResponseEntity.ok(new ApiResponse("Owner bookings fetched", bookings));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ApiResponse("Error fetching owner bookings", e.getMessage()));
+        }
+    }
+
     /**
      * GET bookings by parking spot
      * @param spotId

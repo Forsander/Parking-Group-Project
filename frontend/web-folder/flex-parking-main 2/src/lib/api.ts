@@ -35,8 +35,20 @@ async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T
   });
 
     if (!res.ok) {
-        const text = await res.text().catch(() => "");
-        throw new Error(`API error: ${res.status} ${text}`);
+      const text = await res.text().catch(() => "");
+
+      // Try to parse backend ApiResponse { message, data }
+      try {
+        const parsed = JSON.parse(text);
+        const msg =
+          parsed?.data ||
+          parsed?.message ||
+          parsed?.error ||
+          `Request failed (${res.status})`;
+        throw new Error(typeof msg === "string" ? msg : `Request failed (${res.status})`);
+      } catch {
+        throw new Error(text || `Request failed (${res.status})`);
+      }
     }
 
     const json = (await res.json()) as ApiResponse<T>;

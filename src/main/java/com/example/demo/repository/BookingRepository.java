@@ -32,7 +32,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     );
 
     List<Booking> findByStatus(BookingStatus status);
-
+    List<Booking> findBySpot_CreatedByAndStatusInOrderByStartTimeAsc(User owner, List<BookingStatus> statuses);
     Optional<Booking> findBySpotAndStatus(ParkingSpot spot, BookingStatus status);
 
     List<Booking> findByStatusAndStartTimeBefore(BookingStatus bookingStatus, LocalDateTime now);

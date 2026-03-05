@@ -268,6 +268,18 @@ public class BookingService implements IBookingService {
         return getConvertedBookings(bookings);
     }
 
+    public List<BookingResponseDto> getBookingsForOwner(AppUserDetails userDetails) {
+        User owner = userRepository.findByEmail(userDetails.getUsername());
+        if (owner == null) throw new ResourceNotFoundException("User not found");
+
+        List<Booking> bookings = bookingRepository.findBySpot_CreatedByAndStatusInOrderByStartTimeAsc(
+                owner,
+                List.of(BookingStatus.PENDING, BookingStatus.CONFIRMED, BookingStatus.ACTIVE)
+        );
+
+        return getConvertedBookings(bookings);
+    }
+
     public List<BookingResponseDto> getPendingRequestsForMySpots(AppUserDetails userDetails) {
         User owner = userRepository.findByEmail(userDetails.getUsername());
         if (owner == null) throw new ResourceNotFoundException("User not found");

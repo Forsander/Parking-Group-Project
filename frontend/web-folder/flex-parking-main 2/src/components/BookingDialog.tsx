@@ -25,11 +25,26 @@ interface BookingDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onBooked?: () => void;
+  availableFrom?: string;
+  availableTo?: string;
 }
 
-export function BookingDialog({ spotId, pricePerHour, pricePerDay, open, onOpenChange, onBooked, }: BookingDialogProps) {
+export function BookingDialog({
+  spotId,
+  pricePerHour,
+  pricePerDay,
+  open,
+  onOpenChange,
+  onBooked,
+  availableFrom,
+  availableTo,
+}: BookingDialogProps) {
   const { vehicles, fetchVehicles } = useVehicleStore();
   const { createBooking } = useBookingStore();
+  const withSeconds = (v: string) => (v.length === 16 ? `${v}:00` : v);
+  const toLocalInput = (iso?: string) => (iso ? iso.slice(0, 16) : undefined);
+
+
 
   useEffect(() => {
     if (open) fetchVehicles();
@@ -56,8 +71,6 @@ export function BookingDialog({ spotId, pricePerHour, pricePerDay, open, onOpenC
   const startTime = form.watch("startTime");
   const endTime = form.watch("endTime");
   const totalPrice = calculatePrice(startTime, endTime);
-
-  const withSeconds = (v: string) => (v.length === 16 ? `${v}:00` : v);
 
   const onSubmit = async (values: BookingFormValues) => {
     try {
@@ -98,7 +111,11 @@ export function BookingDialog({ spotId, pricePerHour, pricePerDay, open, onOpenC
                   <FormItem>
                     <FormLabel>Start Time</FormLabel>
                     <FormControl>
-                      <Input type="datetime-local" {...field} />
+                      <Input
+                        type="datetime-local"
+                        min={toLocalInput(availableFrom)}
+                        max={toLocalInput(availableTo)}
+                        {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -111,7 +128,12 @@ export function BookingDialog({ spotId, pricePerHour, pricePerDay, open, onOpenC
                   <FormItem>
                     <FormLabel>End Time</FormLabel>
                     <FormControl>
-                      <Input type="datetime-local" {...field} />
+                      <Input
+                        type="datetime-local"
+                        min={toLocalInput(availableFrom)}
+                        max={toLocalInput(availableTo)}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

@@ -14,14 +14,27 @@ import { toast } from "sonner";
 export default function MySpots() {
   const { user } = useAuth();
   const { userSpots, loading, fetchUserSpots, deleteSpot, activateSpot } = useParkingSpotStore();
-  const { pendingRequests, fetchPendingForOwner, acceptBooking, rejectBooking } = useBookingStore();
+
+  const {
+    pendingRequests,
+    fetchPendingForOwner,
+    acceptBooking,
+    rejectBooking,
+    ownerBookings,
+    fetchOwnerBookings,
+  } = useBookingStore();
+
+  const lockedSpotIds = new Set<number>((ownerBookings ?? []).map((b: any) => Number(b.spotId)));
 
   useEffect(() => {
     if (user) {
       fetchUserSpots();
       fetchPendingForOwner();
+      fetchOwnerBookings();
     }
-  }, [user, fetchUserSpots, fetchPendingForOwner]);
+  }, [user, fetchUserSpots, fetchPendingForOwner, fetchOwnerBookings]);
+
+  const visibleSpots = (userSpots ?? []).filter((s) => s.active || lockedSpotIds.has(s.id));
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -50,10 +63,15 @@ export default function MySpots() {
                     <Button
                       size="sm"
                       onClick={async () => {
-                        await acceptBooking(b.id);
-                        toast.success("Accepted");
-                        await fetchPendingForOwner();
-                        await fetchUserSpots();
+                        try {
+                          await acceptBooking(b.id);
+                          toast.success("Accepted");
+                          await fetchPendingForOwner();
+                          await fetchUserSpots();
+                          await fetchOwnerBookings();
+                        } catch (e: any) {
+                          toast.error(e?.message || "Failed to accept");
+                        }
                       }}
                     >
                       Accept
@@ -63,10 +81,15 @@ export default function MySpots() {
                       size="sm"
                       variant="destructive"
                       onClick={async () => {
-                        await rejectBooking(b.id);
-                        toast.success("Declined");
-                        await fetchPendingForOwner();
-                        await fetchUserSpots();
+                        try {
+                          await rejectBooking(b.id);
+                          toast.success("Declined");
+                          await fetchPendingForOwner();
+                          await fetchUserSpots();
+                          await fetchOwnerBookings();
+                        } catch (e: any) {
+                          toast.error(e?.message || "Failed to decline");
+                        }
                       }}
                     >
                       Decline
@@ -82,9 +105,9 @@ export default function MySpots() {
           <div className="flex justify-center py-8">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
           </div>
-        ) : userSpots && userSpots.length > 0 ? (
+        ) : visibleSpots.length > 0 ? (
           <div className="space-y-4">
-            {userSpots.map((spot) => (
+            {visibleSpots.map((spot) => (
               <Card key={spot.id}>
                 <CardHeader>
                   <div className="flex items-start justify-between">
@@ -95,12 +118,13 @@ export default function MySpots() {
                         {spot.address}
                       </CardDescription>
                     </div>
+
                     <div className="flex items-center gap-2">
                       <Badge variant={spot.active ? "default" : "secondary"}>
-                        {spot.active ? "Available" : "Unavailable"}
+                        {spot.active ? "Available" : "Booked"}
                       </Badge>
 
-                      {!spot.active && (
+                      {!spot.active && lockedSpotIds.has(spot.id) && (
                         <Button
                           size="sm"
                           onClick={async () => {
@@ -108,6 +132,7 @@ export default function MySpots() {
                               await activateSpot(spot.id);
                               toast.success("Activated");
                               await fetchUserSpots();
+                              await fetchOwnerBookings();
                             } catch (e: any) {
                               toast.error(e?.message || "Failed to activate");
                             }
@@ -126,6 +151,8 @@ export default function MySpots() {
                             try {
                               await deleteSpot(spot.id);
                               toast.success("Removed from listings");
+                              await fetchUserSpots();
+                              await fetchOwnerBookings();
                             } catch (e: any) {
                               toast.error(e?.message || "Failed to remove listing");
                             }
@@ -138,6 +165,7 @@ export default function MySpots() {
                     </div>
                   </div>
                 </CardHeader>
+
                 <CardContent>
                   {spot.description && (
                     <p className="mb-3 text-sm text-muted-foreground">{spot.description}</p>
