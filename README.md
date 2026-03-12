@@ -89,7 +89,7 @@ mvnw.cmd spring-boot:run
 The backend will start on port 8080. The frontend can now make API requests to `http://localhost:8080`.
 ---
 ## API Endpoints
-coming here soon...
+API Endpoints can be found in our technical document. 
 
 ---
 ## Notes
