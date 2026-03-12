@@ -1,6 +1,7 @@
 # Parking App - Group Project
 
  This repository contains the backend and frontend code for the Parking App, developed as part of a group project course at ÅA University.
+ It also contains the user guide for setting up the project on your own computer, as required. 
  
 ---
 ## Project File Structure
