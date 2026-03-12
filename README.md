@@ -7,14 +7,14 @@
 ## Project File Structure
 - **Backend**:`src/main/java/com/example/demo/controller`, `src/main/java/com/example/demo/service` `src/main/java/com/example/demo/model`, `src/main/java/com/example/demo/repository`,... 
 + Maven wrapper files (`mvnw`, `mvnw.cmd`) and `pom.xml`
-- **Frontend**: `frontend/` folder (React Native)
+- **Frontend**: `frontend/` folder (React)
 ---
 ## System Architecture Overview
 <img width="662" height="519" alt="image" src="https://github.com/user-attachments/assets/89bc5f70-ac48-494b-8a20-5a60722aa3c6" />
 
 ---
 ## Tech Stack
-- **Frontend**: React Native
+- **Frontend**: React
 - **Backend**: Java Spring Boot 
 - **Database**: MySQL
 - **Security**: JWT, Spring Security
